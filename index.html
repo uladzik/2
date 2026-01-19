@@ -1,26 +1,6 @@
-History
-Recent
-Screenshot-2026-01-08-at-17.16.09.jpg
-Что за способности Донфламинго из Ван Писа?
-Опиши
-Для чего
-Подходят ли для Фениксов седьмых? Я никогда не видел такую зарядку.
-Gerade bei #Kleinanzeigen gefunden. Wie findest du das? https://www.kleinanzeigen.de/s-anzeige/bmw-e
-Какую машину я могу себе взять для дрифта? Е46 Touring или Mazda Miata? Что дешевле в плане обслужив
-Объясни мне, в чем разница бейслейера и фёрстлейера мерино вулу у Icebreaker, потому что они продают
-Размеры
-Сколько грам жира можно употреблять в день
-Gerade bei #Kleinanzeigen gefunden. Wie findest du das? https://www.kleinanzeigen.de/s-anzeige/honda
-Какая зарплата
-What is it
-Фликс-трейн лейт фор вон аур.
-Разве есть макбук про м5 уже
-Где даётся скидка на макбук в Германии?
-Разница
-Самые популярные и лучшие хэштеги на винтед 2026
-Сало с хреном польза и вред
-Дай мне хештеги, чтобы продать это быстрее на Винтед, типа Opium Archive, Comme des Garçons, японски
-View All
+Discover
+For You
+Top
 
 
 Account
@@ -116,226 +96,140 @@ pip install -r requirements.txt
 Если ок — push и redeploy. Если нет, удали subprocess из requirements.txt или замени на альтернативы. Полные логи помогут уточнить!
 ​
 
-проверь код досконально!
-ЧТОБЫ ВСЕ БЫЛО ГОТОВО
-
-11 attachments
-app.py
-Generated File · v3
-
+2.railway.internal
 requirements.txt
 Generated File
 
-Procfile.txt
+Procfile
 Generated File
 
-✅ ИТОГОВЫЙ ЧЕКЛИСТ - ЧТО ДЕЛАТЬ:
-📝 В GITHUB РЕПО ДОЛЖНЫ БЫТЬ:
-text
-✅ app.py              ← Flask backend (создал выше)
-✅ index.html          ← Мини-приложение (обновил выше)
-✅ requirements.txt    ← Только Flask зависимости (3 строки)
-✅ Procfile            ← web: gunicorn app:app
-✅ .gitignore          ← (создал выше)
-✅ README.md           ← Документация (создал выше)
-
-❌ УДАЛИ:
-   - scheduler.py (старый, вызывает ошибки)
-   - main.py (не нужен)
-   - auth_google.py (не нужен)
-   - auth_backend.py (не нужен)
-   - bot.py (старый, можно удалить)
-   - Все auth файлы
-   - nixpacks.toml (не нужен)
-   - Дублирующиеся requirements.txt
-🚀 ПОШАГОВЫЕ ДЕЙСТВИЯ:
-1️⃣ Загрузи новые файлы в GitHub:
-
-bash
-cd your-repo
-# Замени старые файлы на новые
-# app.py, index.html, requirements.txt, Procfile, .gitignore, README.md
-
-# Удали старые файлы
-git rm scheduler.py main.py auth_google.py auth_backend.py bot.py nixpacks.toml
-
-# Закоммитируй
-git add .
-git commit -m "Fix: Clean up project structure, add Flask API, update frontend"
-git push
-2️⃣ Railway автоматически перестроится (5-10 минут)
-
-3️⃣ Когда build успешен - нажми "Generate Domain" в Railway UI
-
-Settings → Networking → Generate Domain
-
-Скопируй URL типа: https://tg2-production-xxxxx.up.railway.app
-
-4️⃣ Обнови API_URL в index.html:
-Замени эту строку:
-
-javascript
-const API_URL = 'https://tg2-production-xxxxx.up.railway.app';
-5️⃣ Финальный push:
-
-bash
-git add index.html
-git commit -m "Update API URL to Railway production domain"
-git push
-📊 Что проверил:
-✅	Файл	Статус
-✅	app.py	Flask + CORS + 3 endpoints готов
-✅	index.html	Мини-приложение готово, добавил status badge
-✅	requirements.txt	Только нужные: flask, flask-cors, gunicorn
-✅	Procfile	web: gunicorn app:app готов
-✅	.gitignore	Готов
-✅	README.md	Подробная документация
-❌	старые файлы	Нужно УДАЛИТЬ
-Всё готово! Отправь мне Railway URL когда будет готов, и я проверю что всё работает! 🚀
-
-я создам все заново
-✅ ОТЛИЧНО! Создавай заново! Вот тебе ФИНАЛЬНЫЙ набор файлов для чистого старта:
-
-📋 ТОЧНЫЕ ФАЙЛЫ ДЛЯ GITHUB:
-1️⃣ app.py (Flask Backend)
-python
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import os
-
-app = Flask(__name__)
-CORS(app)
-
-meetings_storage = {}
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok', 'message': 'API is running'}), 200
-
-@app.route('/save_meetings', methods=['POST'])
-def save_meetings():
-    try:
-        data = request.get_json()
-        meetings = data.get('meetings', [])
-        meetings_storage['all'] = meetings
-        return jsonify({'status': 'ok', 'message': f'Saved {len(meetings)} meetings'}), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 400
-
-@app.route('/get_meetings', methods=['GET'])
-def get_meetings():
-    try:
-        meetings = meetings_storage.get('all', [])
-        return jsonify({'status': 'ok', 'meetings': meetings}), 200
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 400
-
-if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
-2️⃣ requirements.txt (Зависимости)
-text
-flask==2.3.2
-flask-cors==4.0.0
-gunicorn==21.2.0
-3️⃣ Procfile (Railway Config)
-text
-web: gunicorn app:app
-4️⃣ index.html (Мини-приложение)
-Используй файл index-clean.html который я создал выше (тот что с const API_URL = 'https://tg2-production-xxxxx.up.railway.app';)
-
-5️⃣ .gitignore
-text
-__pycache__/
-*.py[cod]
-.env
-.env.local
-venv/
-env/
-.DS_Store
-.vscode/
-.idea/
-6️⃣ README.md
-Используй файл который я создал выше
-
-🚀 ИНСТРУКЦИЯ ДЛЯ СОЗДАНИЯ ЗАНОВО:
-bash
-# 1. Создай новую папку или очисти старую
-mkdir tg2-calendar-bot
-cd tg2-calendar-bot
-
-# 2. Инициализируй git (если нового репо)
-git init
-
-# 3. Создай файлы выше (просто скопируй код)
-# Создай: app.py, requirements.txt, Procfile, index.html, .gitignore, README.md
-
-# 4. Закоммитируй
-git add .
-git commit -m "Initial commit: Flask backend + Telegram Mini App"
-
-# 5. Подключи к GitHub
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
-git branch -M main
-git push -u origin main
-
-# 6. Подключи к Railway
-# Railway автоматически обнаружит Procfile и запустит приложение
-📌 ВАЖНО!
-После первого успешного deploy на Railway:
-
-Нажми "Generate Domain" в Railway UI
-
-Скопируй URL (тип: https://tg2-production-abc123.up.railway.app)
-
-Замени в index.html строку:
-
-javascript
-const API_URL = 'https://tg2-production-xxxxx.up.railway.app';
-на:
-
-javascript
-const API_URL = 'https://tg2-production-abc123.up.railway.app';  // твой реальный URL
-Закоммитируй и запушь
-
-Отправь мне Railway URL когда будет готов! ✅
-
-4️⃣ index.html (Мини-приложение)
-Используй файл index-clean.html который я создал выше (тот что с const API_URL = 'https://tg2-production-xxxxx.up.railway.app';) не понялл
-index-final.html
+.env.example
 Generated File
 
-✅ ГОТОВО!
-Скопируй содержимое файла index-final.html в свой index.html
+Perfect! ✅ Вот полный набор файлов готовый к деплою:
 
-🔑 ВАЖНО! Замени API URL:
-В самом начале JavaScript части найди эту строку:
+📦 ГОТОВЫЕ ФАЙЛЫ ДЛЯ GITHUB:
+Файл	Описание
+✅ app.py	Flask backend с 3 endpoints
+✅ index.html	Telegram Mini App с использованием http://web:5000
+✅ requirements.txt	Python зависимости
+✅ Procfile	Railway конфигурация
+✅ .env.example	Пример переменных окружения
+🚀 ЧТО ПРОИЗОЙДЕТ:
+index.html использует http://web:5000 — внутренний Railway DNS для синхронизации
+
+Телеграм бот откроет мини-приложение на публичном URL Railway
+
+Встречи сохраняются в localStorage + синхронизируются на сервер
+
+⚙️ RAILWAY КОНФИГУРАЦИЯ:
+text
+Service Name: web
+Build Command: (auto detect)
+Start Command: gunicorn app:app
+Variables:
+  BOT_TOKEN=your_token_from_botfather
+  PORT=5000
+Всё готово к пушу на GitHub! 🎉 Нужна помощь с Telegram Botом или Railway деплоем?
+
+вот так выглядит
+
+5 attachments
+Perfect! 🎉 Вот что у тебя есть:
+
+✅ ТВОИ ФАЙЛЫ ГОТОВЫ К ДЕПЛОЮ:
+Файл	Статус	Контент
+app.py	✅	Flask backend с 3 endpoints (health, save, get)
+requirements.txt	✅	flask, flask-cors, gunicorn (чистая версия)
+Procfile	✅	web: gunicorn app:app
+.gitignore	✅	Исключает pycache, .env, venv и т.д.
+index.html	⚠️	НУЖНО ОБНОВИТЬ API_URL
+🔑 ЧТО НУЖНО СДЕЛАТЬ:
+1️⃣ Обновить API_URL в index.html
+В твоём файле найди эту строку (примерно строка 150):
 
 javascript
 const API_URL = 'https://tg2-production-xxxxx.up.railway.app';
-После первого деплоя на Railway, замени на свой реальный URL:
+Замени на внутренний Railway URL:
 
 javascript
-const API_URL = 'https://YOUR-ACTUAL-RAILWAY-URL.up.railway.app';
-Где YOUR-ACTUAL-RAILWAY-URL — это URL, который Railway выдаст после деплоя 👈
+const API_URL = 'http://web:5000';
+Это позволит приложению синхронизироваться с серверопю внутри Railway сети.
 
-📋 Полный набор файлов для гита:
-✅ app.py (Flask backend)
+2️⃣ Создай .env.example
+Добавь в репозиторий файл .env.example:
 
-✅ index.html (этот файл с API_URL)
+text
+BOT_TOKEN=your_token_from_botfather
+PORT=5000
+🚀 ФИНАЛЬНАЯ ИНСТРУКЦИЯ:
+bash
+# 1. Обнови файлы в GitHub
+git add .
+git commit -m "Update: Fix API URL for Railway internal network"
+git push
 
-✅ requirements.txt — зависимости
+# 2. Railway автоматически перестроится (5 минут)
 
-✅ Procfile — для Railway
+# 3. Когда deploy успешный:
+#    - Нажми "Generate Domain" в Railway
+#    - Скопируй URL типа: https://tg2-production-xxxxx.up.railway.app
+#    - Используй этот URL в Telegram Bot Webhook!
+📊 ПРОВЕРКА ГОТОВНОСТИ:
+✅ Backend (app.py) — готов
 
-✅ .env или .env.example
+✅ Frontend (index.html) — готов
 
-Хочешь, чтобы я создал остальные файлы? 🚀
+✅ Requirements — готов
+
+✅ Procfile — готов
+
+⚠️ API_URL нужно обновить на http://web:5000
+
+⚠️ .env.example нужно добавить
+
+Всё просто! Нужно сделать эти 2 изменения, и можешь деплоить! 🎯
+
+САМ НАПИШИ ЭТОТ ФАЙЛ ЦЕЛИКОМ И ЗАМЕНИ
+index-ready.html
+Generated File
+
+Perfect! ✅ Файл готов!
+
+Скопируй содержимое файла index-ready.html и замени им свой index.html в GitHub репо.
+
+🎯 ЧТО ИЗМЕНИЛОСЬ:
+Было	Стало
+const API_URL = 'https://tg2-production-xxxxx.up.railway.app';	const API_URL = 'http://web:5000';
+📋 ТВОЙ ПОЛНЫЙ НАБОР ФАЙЛОВ:
+✅ app.py — Flask backend (уже готов)
+
+✅ index-ready.html → переименуй в index.html
+
+✅ requirements.txt — зависимости (уже готов)
+
+✅ Procfile — Railway конфиг (уже готов)
+
+✅ .gitignore — исключения (уже готов)
+
+🚀 ФИНАЛЬНЫЕ ШАГИ:
+bash
+# 1. Замени старый index.html на новый
+cp index-ready.html index.html
+
+# 2. Закоммитируй в GitHub
+git add .
+git commit -m "Fix: Update API URL to Railway internal network"
+git push
+
+# 3. Railway автоматически перестроится (5 минут)
+# 4. Готово! 🎉
+Теперь всё готово к деплою! 🚀
 
 
 
 
-index-final.html
+index-ready.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
