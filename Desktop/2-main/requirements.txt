@@ -1,0 +1,9 @@
+flask==2.3.2
+flask-cors==4.0.0
+gunicorn==21.2.0
+google-auth==2.23.0
+google-auth-oauthlib==1.1.0
+google-api-python-client==2.100.0
+python-telegram-bot==20.6
+APScheduler==3.10.4
+requests==2.31.0
