@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CalendarBot – Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Telegram Mini Apps SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --primary: #2f6bff;
+      --primary-soft: #e5edff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+    }
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 64px;
+    }
+    .app-header {
+      padding: 16px 16px 8px;
+      background: var(--bg);
+    }
+    .app-title {
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .app-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .screen { display: none; padding: 8px 16px 16px; }
+    .screen.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+      margin-bottom: 12px;
+    }
+
+    .row { display: flex; align-items: center; justify-content: space-between; }
+    .row + .row { margin-top: 12px; }
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-blue { background: #e0ebff; color: #2563eb; }
+    .pill-green { background: #dcfce7; color: #15803d; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary-soft);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: left;
+      font-size: 11px;
+    }
+    .stat-label { color: var(--text-muted); margin-bottom: 4px; }
+    .stat-value { font-size: 16px; font-weight: 700; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 10px;
+      z-index: 20;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .nav-btn.active { color: var(--primary); }
+
+    /* Create screen */
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0 8px;
+    }
+    .grid-dates {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .date-cell {
+      border-radius: 12px;
+      padding: 8px 6px;
+      text-align: center;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .date-cell.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .grid-time {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .time-cell {
+      border-radius: 999px;
+      padding: 6px 0;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+      cursor: pointer;
+    }
+    .time-cell.selected {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+    .field input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 24px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <div class="app-title">CalendarBot</div>
+    <div class="app-subtitle">Meeting Scheduler Mini App</div>
+  </header>
+
+  <!-- Home -->
+  <section id="screen-home" class="screen active">
+    <div class="card">
+      <div class="row">
+        <div>
+          <div id="home-date" style="font-size:13px;color:var(--text-muted);"></div>
+          <h2 style="margin-top:4px;font-size:18px;">Today</h2>
+        </div>
+        <button class="btn" style="width:auto;padding:8px 14px;font-size:13px;"
+                onclick="openCreate()">
+          + Schedule Meeting
+        </button>
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="stat-today">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Upcoming</div>
+          <div class="stat-value" id="stat-upcoming">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="stat-completed">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Upcoming Meetings</div>
+      <div id="home-meetings"></div>
+    </div>
+  </section>
+
+  <!-- Meetings list -->
+  <section id="screen-meetings" class="screen">
+    <div id="list-meetings"></div>
+  </section>
+
+  <!-- Create -->
+  <section id="screen-create" class="screen">
+    <div class="card">
+      <h2 style="font-size:16px;margin-bottom:8px;">Schedule Meeting</h2>
+      <div id="create-date-text" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+
+      <div class="section-title">Choose date</div>
+      <div id="dates" class="grid-dates"></div>
+
+      <div class="section-title">Select time</div>
+      <div id="times" class="grid-time"></div>
+
+      <div class="section-title">Details</div>
+      <div class="field">
+        <label>Title</label>
+        <input id="input-title" type="text" placeholder="Nikita call" />
+      </div>
+      <div class="field">
+        <label>Attendee</label>
+        <input id="input-attendee" type="text" placeholder="Alex Rivera" />
+      </div>
+      <div class="field">
+        <label>Duration (minutes)</label>
+        <input id="input-duration" type="number" value="30" />
+      </div>
+
+      <button class="btn" onclick="createMeeting()">Create meeting</button>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="openHome()">Cancel</button>
+    </div>
+  </section>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchScreen('home')" id="nav-home">
+    <span>Home</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('create')" id="nav-create">
+    <span>Create</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('meetings')" id="nav-meetings">
+    <span>Meetings</span>
+  </button>
+</nav>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.expand();
+    tg.ready();
+  }
+
+  // ====== simple data layer (API + localStorage) ======
+  const API_URL = 'https://2-production-9efb.up.railway.app';
+
+  function loadMeetings() {
+    try {
+      return JSON.parse(localStorage.getItem('meetings') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveMeetings(list) {
+    localStorage.setItem('meetings', JSON.stringify(list));
+    syncToServer(list);
+  }
+
+  async function syncToServer(list) {
+    try {
+      const response = await fetch(`${API_URL}/save_meetings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetings: list })
+      });
+      if (!response.ok) console.warn('Server sync failed');
+    } catch (e) {
+      console.warn('Cannot reach server, using localStorage only', e);
+    }
+  }
+
+  // ====== navigation ======
+  function switchScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(`screen-${name}`).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`nav-${name}`).classList.add('active');
+    if (name === 'home') renderHome();
+    if (name === 'meetings') renderMeetings();
+  }
+  function openCreate() { switchScreen('create'); }
+  function openHome() { switchScreen('home'); }
+
+  // ====== date / time selectors ======
+  let selectedDate = null;
+  let selectedTime = null;
+
+  function initDateGrid() {
+    const cont = document.getElementById('dates');
+    cont.innerHTML = '';
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const iso = d.toISOString().slice(0, 10);
+      const cell = document.createElement('div');
+      cell.className = 'date-cell';
+      cell.dataset.date = iso;
+      const day = d.toLocaleDateString(undefined, { weekday: 'short' });
+      const num = d.getDate();
+      cell.innerHTML = `<div>${day}</div><div style="font-weight:600;font-size:14px;">${num}</div>`;
+      cell.onclick = () => {
+        selectedDate = iso;
+        document.querySelectorAll('.date-cell').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        updateCreateHeader();
+      };
+      if (i === 0) { // today default
+        selectedDate = iso;
+        cell.classList.add('selected');
+      }
+      cont.appendChild(cell);
+    }
+  }
+
+  function initTimeGrid() {
+    const cont = document.getElementById('times');
+    cont.innerHTML = '';
+    const slots = [
+      '09:00','09:30','10:00','10:30','11:00','11:30',
+      '12:00','12:30','13:00','13:30','14:00','14:30',
+      '15:00','15:30','16:00','16:30','17:00','17:30'
+    ];
+    slots.forEach((t, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'time-cell';
+      cell.dataset.time = t;
+      cell.textContent = t;
+      cell.onclick = () => {
+        selectedTime = t;
+        document.querySelectorAll('.time-cell').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        updateCreateHeader();
+      };
+      if (i === 0) {
+        selectedTime = t;
+        cell.classList.add('selected');
+      }
+      cont.appendChild(cell);
+    });
+  }
+
+  function updateCreateHeader() {
+    const el = document.getElementById('create-date-text');
+    if (!selectedDate || !selectedTime) {
+      el.textContent = '';
+      return;
+    }
+    const d = new Date(selectedDate + 'T' + selectedTime + ':00');
+    el.textContent = d.toLocaleString(undefined, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // ====== create meeting ======
+  function createMeeting() {
+    const title = document.getElementById('input-title').value.trim() || 'Untitled';
+    const attendee = document.getElementById('input-attendee').value.trim();
+    const duration = parseInt(document.getElementById('input-duration').value, 10) || 30;
+    if (!selectedDate || !selectedTime) {
+      alert('Select date and time.');
+      return;
+    }
+    const list = loadMeetings();
+    const id = Date.now();
+    list.push({
+      id,
+      title,
+      attendee,
+      duration,
+      datetime: selectedDate + 'T' + selectedTime + ':00',
+      status: 'scheduled'
+    });
+    saveMeetings(list);
+
+    if (tg) {
+      tg.showPopup({
+        title: 'Meeting created',
+        message: 'Your meeting has been scheduled.',
+        buttons: [{ id: 'ok', type: 'default', text: 'OK' }]
+      });
+    }
+
+    document.getElementById('input-title').value = '';
+    document.getElementById('input-attendee').value = '';
+    document.getElementById('input-duration').value = '30';
+
+    renderHome();
+    switchScreen('home');
+  }
+
+  // ====== render Home & Meetings ======
+  function renderHome() {
+    const list = loadMeetings();
+    const today = new Date();
+    const todayStr = today.toLocaleDateString(undefined, {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+    document.getElementById('home-date').textContent = todayStr;
+
+    let todayCount = 0, upcomingCount = 0, completedCount = 0;
+    const now = new Date();
+    list.forEach(m => {
+      const d = new Date(m.datetime);
+      if (m.status === 'completed') completedCount++;
+      if (d.toDateString() === now.toDateString() && m.status !== 'completed') todayCount++;
+      if (d > now && m.status !== 'completed') upcomingCount++;
+    });
+    document.getElementById('stat-today').textContent = todayCount;
+    document.getElementById('stat-upcoming').textContent = upcomingCount;
+    document.getElementById('stat-completed').textContent = completedCount;
+
+    const cont = document.getElementById('home-meetings');
+    cont.innerHTML = '';
+    const upcoming = list
+      .filter(m => new Date(m.datetime) >= now)
+      .sort((a,b) => new Date(a.datetime) - new Date(b.datetime))
+      .slice(0, 3);
+
+    if (upcoming.length === 0) {
+      cont.innerHTML = '<div class="card empty">No upcoming meetings</div>';
+      return;
+    }
+    upcoming.forEach(m => cont.appendChild(meetingCard(m)));
+  }
+
+  function renderMeetings() {
+    const list = loadMeetings().sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+    const cont = document.getElementById('list-meetings');
+    cont.innerHTML = '';
+    if (list.length === 0) {
+      cont.innerHTML = '<div class="card empty">No meetings yet</div>';
+      return;
+    }
+    list.forEach(m => cont.appendChild(meetingCard(m, true)));
+  }
+
+  function meetingCard(m, withActions = false) {
+    const d = new Date(m.datetime);
+    const root = document.createElement('div');
+    root.className = 'card';
+    root.innerHTML = `
+      <div class="row">
+        <div>
+          <div style="font-weight:600;font-size:15px;">${m.title}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+            ${m.attendee ? m.attendee : ''}
+          </div>
+        </div>
+        <span class="pill ${m.status === 'completed' ? 'pill-green' : 'pill-blue'}">
+          ${m.status === 'completed' ? 'Completed' : 'Scheduled'}
+        </span>
+      </div>
+      <div class="row">
+        <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+          ${d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+          · ${d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
+          · ${m.duration} min
+        </div>
+      </div>
+    `;
+    if (withActions) {
+      const actions = document.createElement('div');
+      actions.style.marginTop = '10px';
+      actions.style.display = 'flex';
+      actions.style.gap = '8px';
+
+      const btnDone = document.createElement('button');
+      btnDone.className = 'btn btn-outline';
+      btnDone.style.fontSize = '12px';
+      btnDone.textContent = 'Mark completed';
+      btnDone.onclick = () => {
+        const list = loadMeetings();
+        const idx = list.findIndex(x => x.id === m.id);
+        if (idx >= 0) {
+          list[idx].status = 'completed';
+          saveMeetings(list);
+          renderHome(); renderMeetings();
+        }
+      };
+
+      const btnDelete = document.createElement('button');
+      btnDelete.className = 'btn btn-outline';
+      btnDelete.style.fontSize = '12px';
+      btnDelete.textContent = 'Delete';
+      btnDelete.onclick = () => {
+        const list = loadMeetings().filter(x => x.id !== m.id);
+        saveMeetings(list);
+        renderHome(); renderMeetings();
+      };
+
+      actions.appendChild(btnDone);
+      actions.appendChild(btnDelete);
+      root.appendChild(actions);
+    }
+    return root;
+  }
+
+  // init
+  initDateGrid();
+  initTimeGrid();
+  updateCreateHeader();
+  renderHome();
+</script>
+</body>
+</html>
