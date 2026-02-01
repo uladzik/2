@@ -4,100 +4,131 @@
   <meta charset="UTF-8" />
   <title>CalendarBot – Mini App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Telegram Mini Apps SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #f5f7fb;
+      --bg: #f0f4f8;
       --card: #ffffff;
-      --primary: #2f6bff;
-      --primary-soft: #e5edff;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --success: #16a34a;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-soft: #e0e7ff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --success-soft: #d1fae5;
+      --warning: #f59e0b;
+      --warning-soft: #fef3c7;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif; }
     body {
       background: var(--bg);
       color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
     }
     .app {
       max-width: 480px;
       margin: 0 auto;
       min-height: 100vh;
-      padding-bottom: 64px;
+      padding-bottom: 80px;
     }
     .app-header {
-      padding: 16px 16px 8px;
-      background: var(--bg);
+      padding: 20px 20px 12px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-radius: 0 0 24px 24px;
+      margin-bottom: 16px;
     }
     .app-title {
       font-weight: 700;
-      font-size: 20px;
+      font-size: 24px;
+      letter-spacing: -0.5px;
     }
     .app-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 4px;
     }
-    .screen { display: none; padding: 8px 16px 16px; }
+    .screen { display: none; padding: 0 16px 16px; }
     .screen.active { display: block; }
 
     .card {
       background: var(--card);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-      margin-bottom: 12px;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      margin-bottom: 16px;
     }
 
     .row { display: flex; align-items: center; justify-content: space-between; }
-    .row + .row { margin-top: 12px; }
     .pill {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
       font-weight: 600;
     }
-    .pill-blue { background: #e0ebff; color: #2563eb; }
-    .pill-green { background: #dcfce7; color: #15803d; }
+    .pill-scheduled { background: var(--primary-soft); color: var(--primary); }
+    .pill-completed { background: var(--success-soft); color: var(--success); }
 
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 10px 14px;
-      border-radius: 999px;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 14px;
       border: none;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
       color: #fff;
       width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .btn:active {
+      transform: scale(0.98);
     }
     .btn-outline {
       background: transparent;
       color: var(--primary);
-      border: 1px solid var(--primary-soft);
+      border: 2px solid var(--primary-soft);
+      box-shadow: none;
+    }
+    .btn-sm {
+      padding: 10px 16px;
+      font-size: 13px;
+      border-radius: 10px;
     }
 
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 12px;
+      gap: 12px;
+      margin-top: 16px;
     }
     .stat-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 10px;
-      text-align: left;
-      font-size: 11px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 16px;
+      padding: 16px 12px;
+      text-align: center;
     }
-    .stat-label { color: var(--text-muted); margin-bottom: 4px; }
-    .stat-value { font-size: 16px; font-weight: 700; }
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 18px;
+    }
+    .stat-icon.today { background: var(--warning-soft); }
+    .stat-icon.upcoming { background: var(--primary-soft); }
+    .stat-icon.completed { background: var(--success-soft); }
+    .stat-label { color: var(--text-muted); font-size: 11px; font-weight: 500; }
+    .stat-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
 
     /* Bottom nav */
     .bottom-nav {
@@ -105,168 +136,433 @@
       left: 0; right: 0; bottom: 0;
       max-width: 480px;
       margin: 0 auto;
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
-      padding: 8px 0 10px;
+      padding: 12px 0 20px;
       z-index: 20;
     }
     .nav-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 4px;
       font-size: 11px;
+      font-weight: 500;
       color: var(--text-muted);
       border: none;
       background: transparent;
       cursor: pointer;
+      transition: color 0.2s;
+    }
+    .nav-btn .nav-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: background 0.2s;
     }
     .nav-btn.active { color: var(--primary); }
+    .nav-btn.active .nav-icon { background: var(--primary-soft); }
 
-    /* Create screen */
+    /* Calendar styles */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .calendar-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .calendar-nav {
+      display: flex;
+      gap: 8px;
+    }
+    .calendar-nav button {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: none;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .weekday {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 0;
+    }
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .day-cell {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      background: #f8fafc;
+    }
+    .day-cell:hover {
+      background: var(--primary-soft);
+    }
+    .day-cell.other-month {
+      color: #cbd5e1;
+      background: transparent;
+    }
+    .day-cell.today {
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .day-cell.selected {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .day-cell.past {
+      color: #cbd5e1;
+      cursor: not-allowed;
+      background: transparent;
+    }
+    .day-cell.past:hover {
+      background: transparent;
+    }
+
+    /* Time picker styles */
+    .time-section {
+      margin-top: 20px;
+    }
+    .time-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .time-section-title span {
+      font-size: 16px;
+    }
+    .time-period {
+      margin-bottom: 16px;
+    }
+    .time-period-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .time-cell {
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8fafc;
+      border: 2px solid transparent;
+    }
+    .time-cell:hover {
+      background: var(--primary-soft);
+      border-color: var(--primary-soft);
+    }
+    .time-cell.selected {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Selected datetime display */
+    .selected-datetime {
+      background: linear-gradient(135deg, var(--primary-soft) 0%, #f0e7ff 100%);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .selected-datetime .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .selected-datetime .value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Form fields */
     .section-title {
       font-size: 14px;
       font-weight: 600;
-      margin: 12px 0 8px;
-    }
-    .grid-dates {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      margin: 20px 0 12px;
+      display: flex;
+      align-items: center;
       gap: 8px;
-    }
-    .date-cell {
-      border-radius: 12px;
-      padding: 8px 6px;
-      text-align: center;
-      font-size: 12px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-    }
-    .date-cell.selected {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-    .grid-time {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .time-cell {
-      border-radius: 999px;
-      padding: 6px 0;
-      font-size: 12px;
-      border: 1px solid var(--border);
-      text-align: center;
-      cursor: pointer;
-    }
-    .time-cell.selected {
-      background: var(--primary-soft);
-      border-color: var(--primary);
-      color: var(--primary);
     }
     .field {
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
     .field label {
       display: block;
       font-size: 12px;
-      margin-bottom: 4px;
+      font-weight: 500;
+      margin-bottom: 6px;
       color: var(--text-muted);
     }
     .field input {
       width: 100%;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-size: 13px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+    .field input::placeholder {
+      color: #94a3b8;
     }
 
     .empty {
-      padding: 24px 0;
+      padding: 40px 20px;
       text-align: center;
       color: var(--text-muted);
+      font-size: 14px;
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    /* Meeting card */
+    .meeting-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s;
+    }
+    .meeting-card:active {
+      transform: scale(0.98);
+    }
+    .meeting-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .meeting-attendee {
       font-size: 13px;
+      color: var(--text-muted);
+    }
+    .meeting-time {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .meeting-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
 <div class="app">
   <header class="app-header">
-    <div class="app-title">CalendarBot</div>
-    <div class="app-subtitle">Meeting Scheduler Mini App</div>
+    <div class="app-title">📅 CalendarBot</div>
+    <div class="app-subtitle">Schedule meetings with ease</div>
   </header>
 
   <!-- Home -->
   <section id="screen-home" class="screen active">
+    <!-- Google Calendar Connection Card -->
+    <div class="card" id="google-connect-card" style="background: linear-gradient(135deg, #4285f4 0%, #34a853 100%); color: white; display: none;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 32px;">📅</div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 15px;">Connect Google Calendar</div>
+          <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">Sync your events automatically</div>
+        </div>
+      </div>
+      <button class="btn" onclick="connectGoogleCalendar()" style="margin-top: 14px; background: white; color: #4285f4;">
+        🔗 Connect Now
+      </button>
+    </div>
+
+    <!-- Connected status -->
+    <div class="card" id="google-connected-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: none;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 28px;">✅</div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 14px; color: #065f46;">Google Calendar Connected</div>
+          <div style="font-size: 12px; color: #047857; margin-top: 2px;">Your events are synced</div>
+        </div>
+        <button onclick="disconnectGoogle()" style="background: none; border: none; color: #dc2626; font-size: 12px; cursor: pointer;">Disconnect</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="row">
         <div>
           <div id="home-date" style="font-size:13px;color:var(--text-muted);"></div>
-          <h2 style="margin-top:4px;font-size:18px;">Today</h2>
+          <h2 style="margin-top:4px;font-size:20px;font-weight:700;">Today</h2>
         </div>
-        <button class="btn" style="width:auto;padding:8px 14px;font-size:13px;"
-                onclick="openCreate()">
-          + Schedule Meeting
+        <button class="btn btn-sm" style="width:auto;" onclick="openCreate()">
+          ✨ New Meeting
         </button>
       </div>
       <div class="stats">
         <div class="stat-card">
+          <div class="stat-icon today">📌</div>
           <div class="stat-label">Today</div>
           <div class="stat-value" id="stat-today">0</div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon upcoming">🗓</div>
           <div class="stat-label">Upcoming</div>
           <div class="stat-value" id="stat-upcoming">0</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Completed</div>
+          <div class="stat-icon completed">✅</div>
+          <div class="stat-label">Done</div>
           <div class="stat-value" id="stat-completed">0</div>
         </div>
       </div>
     </div>
 
-    <div style="margin-top:16px;">
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Upcoming Meetings</div>
+    <div style="margin-top:8px;">
+      <div style="font-size:16px;font-weight:600;margin-bottom:12px;padding:0 4px;">📋 Upcoming</div>
       <div id="home-meetings"></div>
     </div>
   </section>
 
   <!-- Meetings list -->
   <section id="screen-meetings" class="screen">
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;">All Meetings</div>
     <div id="list-meetings"></div>
   </section>
 
   <!-- Create -->
   <section id="screen-create" class="screen">
     <div class="card">
-      <h2 style="font-size:16px;margin-bottom:8px;">Schedule Meeting</h2>
-      <div id="create-date-text" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">📝 New Meeting</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Pick a date and time</p>
 
-      <div class="section-title">Choose date</div>
-      <div id="dates" class="grid-dates"></div>
-
-      <div class="section-title">Select time</div>
-      <div id="times" class="grid-time"></div>
-
-      <div class="section-title">Details</div>
-      <div class="field">
-        <label>Title</label>
-        <input id="input-title" type="text" placeholder="Nikita call" />
-      </div>
-      <div class="field">
-        <label>Attendee</label>
-        <input id="input-attendee" type="text" placeholder="Alex Rivera" />
-      </div>
-      <div class="field">
-        <label>Duration (minutes)</label>
-        <input id="input-duration" type="number" value="30" />
+      <!-- Selected datetime display -->
+      <div class="selected-datetime">
+        <div class="label">Selected</div>
+        <div class="value" id="selected-display">Choose date & time</div>
       </div>
 
-      <button class="btn" onclick="createMeeting()">Create meeting</button>
-      <button class="btn btn-outline" style="margin-top:8px;" onclick="openHome()">Cancel</button>
+      <!-- Calendar -->
+      <div class="calendar-header">
+        <div class="calendar-title" id="calendar-month-title">January 2026</div>
+        <div class="calendar-nav">
+          <button onclick="prevMonth()">←</button>
+          <button onclick="nextMonth()">→</button>
+        </div>
+      </div>
+      <div class="calendar-weekdays">
+        <div class="weekday">Mon</div>
+        <div class="weekday">Tue</div>
+        <div class="weekday">Wed</div>
+        <div class="weekday">Thu</div>
+        <div class="weekday">Fri</div>
+        <div class="weekday">Sat</div>
+        <div class="weekday">Sun</div>
+      </div>
+      <div class="calendar-days" id="calendar-days"></div>
+
+      <!-- Time picker -->
+      <div class="time-section">
+        <div class="time-section-title"><span>🕐</span> Select Time</div>
+        
+        <div class="time-period">
+          <div class="time-period-label">Morning</div>
+          <div class="time-grid" id="times-morning"></div>
+        </div>
+        
+        <div class="time-period">
+          <div class="time-period-label">Afternoon</div>
+          <div class="time-grid" id="times-afternoon"></div>
+        </div>
+        
+        <div class="time-period">
+          <div class="time-period-label">Evening</div>
+          <div class="time-grid" id="times-evening"></div>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div class="section-title"><span>✏️</span> Details</div>
+      <div class="field">
+        <label>Meeting Title</label>
+        <input id="input-title" type="text" placeholder="Team standup, 1:1 with Alex..." />
+      </div>
+      <div class="field">
+        <label>Attendee (optional)</label>
+        <input id="input-attendee" type="text" placeholder="Name or email" />
+      </div>
+      <div class="field">
+        <label>Duration</label>
+        <input id="input-duration" type="number" value="30" placeholder="Minutes" />
+      </div>
+
+      <button class="btn" onclick="createMeeting()" style="margin-top:8px;">
+        🚀 Create Meeting
+      </button>
+      <button class="btn btn-outline" style="margin-top:10px;" onclick="openHome()">Cancel</button>
     </div>
   </section>
 </div>
@@ -274,12 +570,15 @@
 <!-- Bottom nav -->
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="switchScreen('home')" id="nav-home">
+    <div class="nav-icon">🏠</div>
     <span>Home</span>
   </button>
   <button class="nav-btn" onclick="switchScreen('create')" id="nav-create">
+    <div class="nav-icon">➕</div>
     <span>Create</span>
   </button>
   <button class="nav-btn" onclick="switchScreen('meetings')" id="nav-meetings">
+    <div class="nav-icon">📋</div>
     <span>Meetings</span>
   </button>
 </nav>
@@ -291,9 +590,58 @@
     tg.ready();
   }
 
-  // ====== simple data layer (API + localStorage) ======
   const API_URL = 'https://2-production-9efb.up.railway.app';
 
+  // ====== Google Calendar ======
+  function getTelegramUser() {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      return tg.initDataUnsafe.user;
+    }
+    return null;
+  }
+
+  function checkGoogleConnection() {
+    const connected = localStorage.getItem('google_connected') === 'true';
+    const connectCard = document.getElementById('google-connect-card');
+    const connectedCard = document.getElementById('google-connected-card');
+    
+    if (connected) {
+      connectCard.style.display = 'none';
+      connectedCard.style.display = 'block';
+    } else {
+      connectCard.style.display = 'block';
+      connectedCard.style.display = 'none';
+    }
+  }
+
+  function connectGoogleCalendar() {
+    const user = getTelegramUser();
+    const userId = user ? user.id : 'web_user_' + Date.now();
+    const chatId = user ? user.id : '';
+    
+    const authUrl = `${API_URL}/auth/google?user_id=${userId}&chat_id=${chatId}`;
+    
+    if (tg) {
+      tg.openLink(authUrl);
+    } else {
+      window.open(authUrl, '_blank');
+    }
+    
+    // Mark as connected after redirect (user will come back)
+    localStorage.setItem('google_connected', 'true');
+    setTimeout(checkGoogleConnection, 1000);
+  }
+
+  function disconnectGoogle() {
+    localStorage.removeItem('google_connected');
+    checkGoogleConnection();
+    
+    if (tg) {
+      tg.showPopup({ message: 'Google Calendar disconnected' });
+    }
+  }
+
+  // ====== Data layer ======
   function loadMeetings() {
     try {
       return JSON.parse(localStorage.getItem('meetings') || '[]');
@@ -301,6 +649,7 @@
       return [];
     }
   }
+  
   function saveMeetings(list) {
     localStorage.setItem('meetings', JSON.stringify(list));
     syncToServer(list);
@@ -308,18 +657,17 @@
 
   async function syncToServer(list) {
     try {
-      const response = await fetch(`${API_URL}/save_meetings`, {
+      await fetch(`${API_URL}/save_meetings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ meetings: list })
       });
-      if (!response.ok) console.warn('Server sync failed');
     } catch (e) {
-      console.warn('Cannot reach server, using localStorage only', e);
+      console.warn('Offline mode', e);
     }
   }
 
-  // ====== navigation ======
+  // ====== Navigation ======
   function switchScreen(name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(`screen-${name}`).classList.add('active');
@@ -327,233 +675,328 @@
     document.getElementById(`nav-${name}`).classList.add('active');
     if (name === 'home') renderHome();
     if (name === 'meetings') renderMeetings();
+    if (name === 'create') initCalendar();
   }
+  
   function openCreate() { switchScreen('create'); }
   function openHome() { switchScreen('home'); }
 
-  // ====== date / time selectors ======
+  // ====== Calendar ======
+  let currentMonth = new Date();
   let selectedDate = null;
   let selectedTime = null;
 
-  function initDateGrid() {
-    const cont = document.getElementById('dates');
-    cont.innerHTML = '';
+  function initCalendar() {
+    renderCalendar();
+    renderTimeSlots();
+    updateSelectedDisplay();
+  }
+
+  function renderCalendar() {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendar-month-title').textContent = `${monthNames[month]} ${year}`;
+    
+    const container = document.getElementById('calendar-days');
+    container.innerHTML = '';
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
     const today = new Date();
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() + i);
-      const iso = d.toISOString().slice(0, 10);
+    today.setHours(0, 0, 0, 0);
+    
+    let startDay = firstDay.getDay() - 1;
+    if (startDay < 0) startDay = 6;
+    
+    const prevMonthLast = new Date(year, month, 0).getDate();
+    for (let i = startDay - 1; i >= 0; i--) {
       const cell = document.createElement('div');
-      cell.className = 'date-cell';
+      cell.className = 'day-cell other-month';
+      cell.textContent = prevMonthLast - i;
+      container.appendChild(cell);
+    }
+    
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const cell = document.createElement('div');
+      const cellDate = new Date(year, month, day);
+      const iso = cellDate.toISOString().slice(0, 10);
+      
+      cell.className = 'day-cell';
+      cell.textContent = day;
       cell.dataset.date = iso;
-      const day = d.toLocaleDateString(undefined, { weekday: 'short' });
-      const num = d.getDate();
-      cell.innerHTML = `<div>${day}</div><div style="font-weight:600;font-size:14px;">${num}</div>`;
-      cell.onclick = () => {
-        selectedDate = iso;
-        document.querySelectorAll('.date-cell').forEach(c => c.classList.remove('selected'));
-        cell.classList.add('selected');
-        updateCreateHeader();
-      };
-      if (i === 0) { // today default
-        selectedDate = iso;
-        cell.classList.add('selected');
+      
+      if (cellDate < today) {
+        cell.classList.add('past');
+      } else {
+        if (cellDate.toDateString() === today.toDateString()) {
+          cell.classList.add('today');
+        }
+        if (selectedDate === iso) {
+          cell.classList.add('selected');
+        }
+        cell.onclick = () => selectDate(iso);
       }
-      cont.appendChild(cell);
+      
+      container.appendChild(cell);
+    }
+    
+    const totalCells = container.children.length;
+    const remaining = 42 - totalCells;
+    for (let i = 1; i <= remaining && totalCells < 42; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell other-month';
+      cell.textContent = i;
+      container.appendChild(cell);
+      if (container.children.length >= 42) break;
     }
   }
 
-  function initTimeGrid() {
-    const cont = document.getElementById('times');
-    cont.innerHTML = '';
-    const slots = [
-      '09:00','09:30','10:00','10:30','11:00','11:30',
-      '12:00','12:30','13:00','13:30','14:00','14:30',
-      '15:00','15:30','16:00','16:30','17:00','17:30'
-    ];
-    slots.forEach((t, i) => {
+  function selectDate(iso) {
+    selectedDate = iso;
+    document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+    const cell = document.querySelector(`.day-cell[data-date="${iso}"]`);
+    if (cell) cell.classList.add('selected');
+    updateSelectedDisplay();
+  }
+
+  function prevMonth() {
+    currentMonth.setMonth(currentMonth.getMonth() - 1);
+    renderCalendar();
+  }
+
+  function nextMonth() {
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+    renderCalendar();
+  }
+
+  // ====== Time slots ======
+  function renderTimeSlots() {
+    const morning = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+    const afternoon = ['12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30'];
+    const evening = ['16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'];
+    
+    renderTimeGrid('times-morning', morning);
+    renderTimeGrid('times-afternoon', afternoon);
+    renderTimeGrid('times-evening', evening);
+  }
+
+  function renderTimeGrid(containerId, times) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    
+    times.forEach(time => {
       const cell = document.createElement('div');
       cell.className = 'time-cell';
-      cell.dataset.time = t;
-      cell.textContent = t;
-      cell.onclick = () => {
-        selectedTime = t;
-        document.querySelectorAll('.time-cell').forEach(c => c.classList.remove('selected'));
-        cell.classList.add('selected');
-        updateCreateHeader();
-      };
-      if (i === 0) {
-        selectedTime = t;
-        cell.classList.add('selected');
-      }
-      cont.appendChild(cell);
+      cell.textContent = time;
+      cell.dataset.time = time;
+      if (selectedTime === time) cell.classList.add('selected');
+      cell.onclick = () => selectTime(time);
+      container.appendChild(cell);
     });
   }
 
-  function updateCreateHeader() {
-    const el = document.getElementById('create-date-text');
-    if (!selectedDate || !selectedTime) {
-      el.textContent = '';
+  function selectTime(time) {
+    selectedTime = time;
+    document.querySelectorAll('.time-cell').forEach(c => c.classList.remove('selected'));
+    const cell = document.querySelector(`.time-cell[data-time="${time}"]`);
+    if (cell) cell.classList.add('selected');
+    updateSelectedDisplay();
+  }
+
+  function updateSelectedDisplay() {
+    const el = document.getElementById('selected-display');
+    if (!selectedDate && !selectedTime) {
+      el.textContent = 'Choose date & time';
       return;
     }
-    const d = new Date(selectedDate + 'T' + selectedTime + ':00');
-    el.textContent = d.toLocaleString(undefined, {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    
+    let text = '';
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      text = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+    if (selectedTime) {
+      text += text ? ` at ${selectedTime}` : selectedTime;
+    }
+    el.textContent = text || 'Choose date & time';
   }
 
-  // ====== create meeting ======
+  // ====== Create meeting ======
   function createMeeting() {
-    const title = document.getElementById('input-title').value.trim() || 'Untitled';
+    const title = document.getElementById('input-title').value.trim() || 'Untitled Meeting';
     const attendee = document.getElementById('input-attendee').value.trim();
     const duration = parseInt(document.getElementById('input-duration').value, 10) || 30;
+    
     if (!selectedDate || !selectedTime) {
-      alert('Select date and time.');
+      if (tg) {
+        tg.showPopup({ message: 'Please select date and time' });
+      } else {
+        alert('Please select date and time');
+      }
       return;
     }
+    
     const list = loadMeetings();
-    const id = Date.now();
     list.push({
-      id,
+      id: Date.now(),
       title,
       attendee,
       duration,
-      datetime: selectedDate + 'T' + selectedTime + ':00',
+      datetime: `${selectedDate}T${selectedTime}:00`,
       status: 'scheduled'
     });
     saveMeetings(list);
 
     if (tg) {
       tg.showPopup({
-        title: 'Meeting created',
-        message: 'Your meeting has been scheduled.',
-        buttons: [{ id: 'ok', type: 'default', text: 'OK' }]
+        title: '✅ Meeting Created!',
+        message: `${title}\n${selectedDate} at ${selectedTime}`,
+        buttons: [{ id: 'ok', type: 'default', text: 'Great!' }]
       });
     }
 
     document.getElementById('input-title').value = '';
     document.getElementById('input-attendee').value = '';
     document.getElementById('input-duration').value = '30';
+    selectedDate = null;
+    selectedTime = null;
 
-    renderHome();
     switchScreen('home');
   }
 
-  // ====== render Home & Meetings ======
+  // ====== Render screens ======
   function renderHome() {
+    checkGoogleConnection();
     const list = loadMeetings();
     const today = new Date();
-    const todayStr = today.toLocaleDateString(undefined, {
+    
+    document.getElementById('home-date').textContent = today.toLocaleDateString(undefined, {
       weekday: 'long', month: 'long', day: 'numeric'
     });
-    document.getElementById('home-date').textContent = todayStr;
 
     let todayCount = 0, upcomingCount = 0, completedCount = 0;
     const now = new Date();
+    
     list.forEach(m => {
       const d = new Date(m.datetime);
       if (m.status === 'completed') completedCount++;
-      if (d.toDateString() === now.toDateString() && m.status !== 'completed') todayCount++;
-      if (d > now && m.status !== 'completed') upcomingCount++;
+      else if (d.toDateString() === now.toDateString()) todayCount++;
+      else if (d > now) upcomingCount++;
     });
+    
     document.getElementById('stat-today').textContent = todayCount;
     document.getElementById('stat-upcoming').textContent = upcomingCount;
     document.getElementById('stat-completed').textContent = completedCount;
 
     const cont = document.getElementById('home-meetings');
     cont.innerHTML = '';
+    
     const upcoming = list
-      .filter(m => new Date(m.datetime) >= now)
-      .sort((a,b) => new Date(a.datetime) - new Date(b.datetime))
-      .slice(0, 3);
+      .filter(m => new Date(m.datetime) >= now && m.status !== 'completed')
+      .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
+      .slice(0, 5);
 
     if (upcoming.length === 0) {
-      cont.innerHTML = '<div class="card empty">No upcoming meetings</div>';
+      cont.innerHTML = `
+        <div class="card empty">
+          <div class="empty-icon">📭</div>
+          <div>No upcoming meetings</div>
+          <button class="btn btn-sm" style="width:auto;margin-top:16px;" onclick="openCreate()">
+            Schedule one now
+          </button>
+        </div>
+      `;
       return;
     }
-    upcoming.forEach(m => cont.appendChild(meetingCard(m)));
+    
+    upcoming.forEach(m => cont.appendChild(createMeetingCard(m)));
   }
 
   function renderMeetings() {
-    const list = loadMeetings().sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+    const list = loadMeetings().sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
     const cont = document.getElementById('list-meetings');
     cont.innerHTML = '';
+    
     if (list.length === 0) {
-      cont.innerHTML = '<div class="card empty">No meetings yet</div>';
+      cont.innerHTML = `
+        <div class="card empty">
+          <div class="empty-icon">📋</div>
+          <div>No meetings yet</div>
+        </div>
+      `;
       return;
     }
-    list.forEach(m => cont.appendChild(meetingCard(m, true)));
+    
+    list.forEach(m => cont.appendChild(createMeetingCard(m, true)));
   }
 
-  function meetingCard(m, withActions = false) {
+  function createMeetingCard(m, withActions = false) {
     const d = new Date(m.datetime);
-    const root = document.createElement('div');
-    root.className = 'card';
-    root.innerHTML = `
+    const card = document.createElement('div');
+    card.className = 'meeting-card';
+    
+    card.innerHTML = `
       <div class="row">
         <div>
-          <div style="font-weight:600;font-size:15px;">${m.title}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
-            ${m.attendee ? m.attendee : ''}
-          </div>
+          <div class="meeting-title">${m.title}</div>
+          ${m.attendee ? `<div class="meeting-attendee">with ${m.attendee}</div>` : ''}
         </div>
-        <span class="pill ${m.status === 'completed' ? 'pill-green' : 'pill-blue'}">
-          ${m.status === 'completed' ? 'Completed' : 'Scheduled'}
+        <span class="pill ${m.status === 'completed' ? 'pill-completed' : 'pill-scheduled'}">
+          ${m.status === 'completed' ? '✓ Done' : '📅 Scheduled'}
         </span>
       </div>
-      <div class="row">
-        <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-          ${d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
-          · ${d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
-          · ${m.duration} min
-        </div>
+      <div class="meeting-time">
+        <span>🗓 ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+        <span>·</span>
+        <span>🕐 ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+        <span>·</span>
+        <span>⏱ ${m.duration}min</span>
       </div>
     `;
+    
     if (withActions) {
       const actions = document.createElement('div');
-      actions.style.marginTop = '10px';
-      actions.style.display = 'flex';
-      actions.style.gap = '8px';
-
-      const btnDone = document.createElement('button');
-      btnDone.className = 'btn btn-outline';
-      btnDone.style.fontSize = '12px';
-      btnDone.textContent = 'Mark completed';
-      btnDone.onclick = () => {
-        const list = loadMeetings();
-        const idx = list.findIndex(x => x.id === m.id);
-        if (idx >= 0) {
-          list[idx].status = 'completed';
-          saveMeetings(list);
-          renderHome(); renderMeetings();
-        }
-      };
-
+      actions.className = 'meeting-actions';
+      
+      if (m.status !== 'completed') {
+        const btnDone = document.createElement('button');
+        btnDone.className = 'btn btn-outline btn-sm';
+        btnDone.innerHTML = '✓ Complete';
+        btnDone.onclick = (e) => {
+          e.stopPropagation();
+          const list = loadMeetings();
+          const idx = list.findIndex(x => x.id === m.id);
+          if (idx >= 0) {
+            list[idx].status = 'completed';
+            saveMeetings(list);
+            renderMeetings();
+          }
+        };
+        actions.appendChild(btnDone);
+      }
+      
       const btnDelete = document.createElement('button');
-      btnDelete.className = 'btn btn-outline';
-      btnDelete.style.fontSize = '12px';
-      btnDelete.textContent = 'Delete';
-      btnDelete.onclick = () => {
+      btnDelete.className = 'btn btn-outline btn-sm';
+      btnDelete.innerHTML = '🗑 Delete';
+      btnDelete.onclick = (e) => {
+        e.stopPropagation();
         const list = loadMeetings().filter(x => x.id !== m.id);
         saveMeetings(list);
-        renderHome(); renderMeetings();
+        renderMeetings();
+        renderHome();
       };
-
-      actions.appendChild(btnDone);
       actions.appendChild(btnDelete);
-      root.appendChild(actions);
+      
+      card.appendChild(actions);
     }
-    return root;
+    
+    return card;
   }
 
-  // init
-  initDateGrid();
-  initTimeGrid();
-  updateCreateHeader();
+  // Init
   renderHome();
 </script>
 </body>
